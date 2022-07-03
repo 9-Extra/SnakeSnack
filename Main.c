@@ -12,11 +12,11 @@
 #define DIRECTION_RIGHT 2
 #define DIRECTION_DOWN 3
 
-#define BLOCK_WALL 'w'
-#define BLOCK_SNAKE_BODY 'b'
-#define BLOCK_SNAKE_HEAD 'h'
-#define BLOCK_FOOD 'f'
-#define BLOCK_VOID ' '
+#define BLOCK_WALL 0
+#define BLOCK_SNAKE_BODY 1
+#define BLOCK_SNAKE_HEAD 2
+#define BLOCK_FOOD 3
+#define BLOCK_VOID 4
 
 char panle[PANLE_HEIGHT][PANLE_WIDTH];
 
@@ -69,13 +69,40 @@ void game_render() {
 	printf("Score: %d\n", game.score);
 	for (int i = 0; i < PANLE_HEIGHT; i++) {
 		for (int j = 0; j < PANLE_WIDTH; j++) {
-			putchar(panle[i][j]);
+			switch (panle[i][j])
+			{
+			case BLOCK_WALL: {
+				putchar(L'■');
+				break;
+			}
+			case BLOCK_VOID: {
+				putchar(L' ');
+				putchar(L' ');
+				break;
+			}
+			case BLOCK_FOOD: {
+				putchar(L'$');
+				putchar(L'$');
+				break;
+			}
+			case BLOCK_SNAKE_BODY: {
+				putchar(L'▢');
+				break;
+			}
+			case BLOCK_SNAKE_HEAD: {
+				putchar(L'△');
+				break;
+			}
+			default:
+				putchar(L'☒');
+				break;
+			};
 		}
 		puts("");
 	}
 }
 
-void empty_snake_fifo() {
+void snake_fifo_clear() {
 	game.snake_fifo_last = 0;
 	game.snake_fifo_next = 0;
 }
@@ -100,6 +127,9 @@ struct Pos snake_fifo_pop() {
 
 void generate_snack() {
 	struct Pos* vaild_pos = malloc(PANLE_HEIGHT * PANLE_WIDTH * sizeof(struct Pos));
+	if (vaild_pos == NULL) {
+		exit(-1);
+	}
 	int vaild_pos_num = 0;
 	for (int i = 0; i < PANLE_HEIGHT; i++) {
 		for (int j = 0; j < PANLE_WIDTH; j++) {
@@ -142,7 +172,7 @@ void init_snake_snack() {
 	panle[5][4] = BLOCK_SNAKE_BODY;
 	panle[5][3] = BLOCK_SNAKE_BODY;
 
-	empty_snake_fifo();
+	snake_fifo_clear();
 	snake_fifo_push(build_pos(3, 5));
 	snake_fifo_push(build_pos(4, 5));
 	snake_fifo_push(build_pos(5, 5));
