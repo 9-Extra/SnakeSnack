@@ -34,14 +34,18 @@ void console_clear() {
 	puts("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 }
 
-void panle_render() {
-	puts("");//换行，保证光标在最左端
-	for (int i = 0; i < PANLE_HEIGHT; i++) {
-		for (int j = 0; j < PANLE_WIDTH; j++) {
-			putchar(panle[j][i]);
-		}
-		puts("");
-	}
+struct Pos
+{
+	int x;
+	int y;
+};
+
+struct Pos build_pos(int x, int y) {
+	struct Pos p = {
+		.x = x,
+		.y = y
+	};
+	return p;
 }
 
 struct SnakeSnack
@@ -53,27 +57,56 @@ struct SnakeSnack
 	int snake_head_x;
 	int snake_head_y;
 
-	int snake_tail_x;
-	int snake_tail_y;
-
 	char snake_direction;
+
+	struct Pos snake_fifo[PANLE_HEIGHT * PANLE_WIDTH];
+
+	size_t snake_fifo_next;
+	size_t snake_fifo_last;
 } game;
 
+void game_render() {
+	printf("Score: %d\n", game.score);
+	for (int i = 0; i < PANLE_HEIGHT; i++) {
+		for (int j = 0; j < PANLE_WIDTH; j++) {
+			putchar(panle[i][j]);
+		}
+		puts("");
+	}
+}
+
+void empty_snake_fifo() {
+	game.snake_fifo_last = 0;
+	game.snake_fifo_next = 0;
+}
+
+void snake_fifo_push(struct Pos head) {
+	game.snake_fifo_next++;
+	if (game.snake_fifo_next == PANLE_HEIGHT * PANLE_WIDTH) {
+		game.snake_fifo_next = 0;
+	}
+	game.snake_fifo[game.snake_fifo_next] = head;
+}
+
+struct Pos snake_fifo_pop() {
+	game.snake_fifo_last++;
+
+	if (game.snake_fifo_next == PANLE_HEIGHT * PANLE_WIDTH) {
+		game.snake_fifo_next = 0;
+	}
+
+	return game.snake_fifo[game.snake_fifo_last];
+}
 
 void generate_snack() {
-	struct Pos
-	{
-		int x;
-		int y;
-	};
 	struct Pos* vaild_pos = malloc(PANLE_HEIGHT * PANLE_WIDTH * sizeof(struct Pos));
 	int vaild_pos_num = 0;
 	for (int i = 0; i < PANLE_HEIGHT; i++) {
 		for (int j = 0; j < PANLE_WIDTH; j++) {
 			if (panle[i][j] == BLOCK_VOID) {
 				struct Pos p;
-				p.x = i;
-				p.y = j;
+				p.y = i;//所在列数
+				p.x = j;//所在行数
 				vaild_pos[vaild_pos_num] = p;
 				vaild_pos_num++;
 			}
@@ -82,7 +115,7 @@ void generate_snack() {
 
 	int r = rand() % vaild_pos_num;
 
-	panle[vaild_pos[r].x][vaild_pos[r].y] = BLOCK_FOOD;
+	panle[vaild_pos[r].y][vaild_pos[r].x] = BLOCK_FOOD;
 
 	free(vaild_pos);
 }
@@ -93,8 +126,6 @@ void init_snake_snack() {
 	game.snake_direction = DIRECTION_RIGHT;
 	game.snake_head_x = 5;
 	game.snake_head_y = 5;
-	game.snake_tail_x = 3;
-	game.snake_tail_y = 5;
 
 	panle_clear(BLOCK_VOID);
 	for (int i = 0; i < PANLE_HEIGHT; i++)
@@ -107,11 +138,17 @@ void init_snake_snack() {
 		panle[0][i] = BLOCK_WALL;
 		panle[PANLE_HEIGHT - 1][i] = BLOCK_WALL;
 	}
-	panle[5][5] = BLOCK_SNAKE_HEAD;
-	panle[4][5] = BLOCK_SNAKE_BODY;
-	panle[3][5] = BLOCK_SNAKE_BODY;
+	panle[5][5] = BLOCK_SNAKE_BODY;
+	panle[5][4] = BLOCK_SNAKE_BODY;
+	panle[5][3] = BLOCK_SNAKE_BODY;
+
+	empty_snake_fifo();
+	snake_fifo_push(build_pos(3, 5));
+	snake_fifo_push(build_pos(4, 5));
+	snake_fifo_push(build_pos(5, 5));
 
 	generate_snack();
+
 }
 
 void run_snack_snake() {
@@ -150,7 +187,7 @@ void run_snack_snake() {
 			}
 		}
 
-		panle[game.snake_head_x][game.snake_head_y] = BLOCK_SNAKE_BODY;
+		panle[game.snake_head_y][game.snake_head_x] = BLOCK_SNAKE_BODY;
 
 		//向前一步
 		switch (game.snake_direction)
@@ -173,17 +210,21 @@ void run_snack_snake() {
 		}
 		}
 
-		char next_block = panle[game.snake_head_x][game.snake_head_y];
+		char next_block = panle[game.snake_head_y][game.snake_head_x];
+		panle[game.snake_head_y][game.snake_head_x] = BLOCK_SNAKE_HEAD;
+		snake_fifo_push(build_pos(game.snake_head_x, game.snake_head_y));
 
 		switch (next_block)
 		{
 		case BLOCK_VOID: {
 			//尾巴缩短
-			panle[game.snake_tail_x][game.snake_tail_y] = BLOCK_VOID;
+			struct Pos tail = snake_fifo_pop();
+			panle[tail.y][tail.x] = BLOCK_VOID;
 			break;
 		}
 		case BLOCK_FOOD: {
 			game.score += 10;
+			generate_snack();//重新生成食物
 			break;
 		}
 		case BLOCK_SNAKE_BODY:
@@ -192,10 +233,8 @@ void run_snack_snake() {
 		}
 		}
 
-		panle[game.snake_head_x][game.snake_head_y] = BLOCK_SNAKE_HEAD;
-
 		console_clear();
-		panle_render();
+		game_render();
 
 		Sleep(game.interval);
 
@@ -210,6 +249,8 @@ int main() {
 	init_snake_snack();
 
 	run_snack_snake();
+
+	console_clear();
 
 	printf("Score: %d\n", game.score);
 
