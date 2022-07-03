@@ -7,10 +7,10 @@
 #define PANLE_WIDTH 30
 #define PANLE_HEIGHT 20
 
-#define DIRECTION_UP 1
-#define DIRECTION_LEFT -1
+#define DIRECTION_UP 0
+#define DIRECTION_LEFT 1
 #define DIRECTION_RIGHT 2
-#define DIRECTION_DOWN -2
+#define DIRECTION_DOWN 3
 
 #define BLOCK_WALL 'w'
 #define BLOCK_SNAKE_BODY 'b'
@@ -122,7 +122,7 @@ void generate_snack() {
 
 void init_snake_snack() {
 	game.score = 0;
-	game.interval = 1000;//1s
+	game.interval = 300;//0.3s
 	game.snake_direction = DIRECTION_RIGHT;
 	game.snake_head_x = 5;
 	game.snake_head_y = 5;
@@ -229,7 +229,7 @@ void run_snack_snake() {
 		}
 		case BLOCK_SNAKE_BODY:
 		case BLOCK_WALL: {
-			return;
+			return;//GameOver
 		}
 		}
 
@@ -245,13 +245,12 @@ void run_snack_snake() {
 int main() {
 	printf("Hello, world!");
 
-	console_clear();
 	init_snake_snack();
 
 	run_snack_snake();
 
 	console_clear();
-
+	puts("GameOver");
 	printf("Score: %d\n", game.score);
 
 	getchar();//pause
