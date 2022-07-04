@@ -1,26 +1,11 @@
 #include <stdio.h>
-#include <conio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
-
-#define PANLE_WIDTH 30
-#define PANLE_HEIGHT 20
-
-#define DIRECTION_UP 0
-#define DIRECTION_LEFT 1
-#define DIRECTION_RIGHT 2
-#define DIRECTION_DOWN 3
-
-#define BLOCK_WALL 0
-#define BLOCK_SNAKE_BODY 1
-#define BLOCK_SNAKE_HEAD 2
-#define BLOCK_FOOD 3
-#define BLOCK_VOID 4
+#include "Console.h"
+#include "SnakeSnack.h"
 
 char panle[PANLE_HEIGHT][PANLE_WIDTH];
-
-extern void Sleep(int time);//休眠time毫秒
 
 void panle_clear(char c) {
 	for (int i = 0; i < PANLE_HEIGHT; i++) {
@@ -28,10 +13,6 @@ void panle_clear(char c) {
 			panle[i][j] = c;
 		}
 	}
-}
-
-void console_clear() {
-	puts("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 }
 
 struct Pos
@@ -66,40 +47,40 @@ struct SnakeSnack
 } game;
 
 void game_render() {
-	printf("Score: %d\n", game.score);
+	//printf("Score: %d\n", game.score);
 	for (int i = 0; i < PANLE_HEIGHT; i++) {
 		for (int j = 0; j < PANLE_WIDTH; j++) {
+			WCHAR content;
 			switch (panle[i][j])
 			{
 			case BLOCK_WALL: {
-				putchar(L'■');
+				content = L'w';
 				break;
 			}
 			case BLOCK_VOID: {
-				putchar(L' ');
-				putchar(L' ');
+				content = L' ';
 				break;
 			}
 			case BLOCK_FOOD: {
-				putchar(L'$');
-				putchar(L'$');
+				content = L'$';
 				break;
 			}
 			case BLOCK_SNAKE_BODY: {
-				putchar(L'▢');
+				content = L'b';
 				break;
 			}
 			case BLOCK_SNAKE_HEAD: {
-				putchar(L'△');
+				content = L'h';
 				break;
 			}
 			default:
-				putchar(L'☒');
+				content = L'm';
 				break;
 			};
+			paint_target(i, j, content);
 		}
-		puts("");
 	}
+	console_swap();
 }
 
 void snake_fifo_clear() {
@@ -151,6 +132,7 @@ void generate_snack() {
 }
 
 void init_snake_snack() {
+
 	game.score = 0;
 	game.interval = 300;//0.3s
 	game.snake_direction = DIRECTION_RIGHT;
@@ -179,43 +161,55 @@ void init_snake_snack() {
 
 	generate_snack();
 
+	init_console(PANLE_WIDTH, PANLE_HEIGHT);
+
+}
+
+char temp_direction;
+
+void key_proc(WORD key) {
+	switch (key)
+	{
+	case 'W': {
+		if (game.snake_direction != DIRECTION_DOWN) {
+			temp_direction = DIRECTION_UP;
+		}
+		break;
+	}
+	case 'S': {
+		if (game.snake_direction != DIRECTION_UP) {
+			temp_direction = DIRECTION_DOWN;
+		}
+		break;
+	}
+	case 'A': {
+		if (game.snake_direction != DIRECTION_RIGHT) {
+			temp_direction = DIRECTION_LEFT;
+		}
+		break;
+	}
+	case 'D': {
+		if (game.snake_direction != DIRECTION_LEFT) {
+			temp_direction = DIRECTION_RIGHT;
+		}
+		break;
+	}
+	default:
+		break;
+	}
+}
+
+void update_snake_direction() {
+	temp_direction = game.snake_direction;
+	proc_console_input(key_proc);
+	game.snake_direction = temp_direction;
 }
 
 void run_snack_snake() {
 	do
 	{
 		//获取输入
-		if (_kbhit()) {
-			switch (toupper(getch()))
-			{
-			case 'W': {
-				if (game.snake_direction != DIRECTION_DOWN) {
-					game.snake_direction = DIRECTION_UP;
-				}
-				break;
-			}
-			case 'S': {
-				if (game.snake_direction != DIRECTION_UP) {
-					game.snake_direction = DIRECTION_DOWN;
-				}
-				break;
-			}
-			case 'A': {
-				if (game.snake_direction != DIRECTION_RIGHT) {
-					game.snake_direction = DIRECTION_LEFT;
-				}
-				break;
-			}
-			case 'D': {
-				if (game.snake_direction != DIRECTION_LEFT) {
-					game.snake_direction = DIRECTION_RIGHT;
-				}
-				break;
-			}
-			default:
-				break;
-			}
-		}
+		update_snake_direction();
 
 		panle[game.snake_head_y][game.snake_head_x] = BLOCK_SNAKE_BODY;
 
@@ -262,8 +256,7 @@ void run_snack_snake() {
 			return;//GameOver
 		}
 		}
-
-		console_clear();
+		
 		game_render();
 
 		Sleep(game.interval);
@@ -280,10 +273,11 @@ int main() {
 	run_snack_snake();
 
 	console_clear();
-	puts("GameOver");
-	printf("Score: %d\n", game.score);
+	drop_console();
 
-	getchar();//pause
+	WCHAR msg[32];
+	wsprintfW(msg,L"Score: %d\n", game.score);
+	MessageBoxW(NULL, msg, L"GameOver", 0);
 
 	return 0;
 }

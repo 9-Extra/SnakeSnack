@@ -18,12 +18,18 @@
     <ClCompile Include="Main.c">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="panle.c">
+    <ClCompile Include="Console.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="panle.h">
+    <ClInclude Include="Console.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="winapi.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SnakeSnack.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
