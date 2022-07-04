@@ -54,7 +54,7 @@ void game_render() {
 			switch (panle[i][j])
 			{
 			case BLOCK_WALL: {
-				content = L'w';
+				content = L'■';
 				break;
 			}
 			case BLOCK_VOID: {
@@ -66,15 +66,15 @@ void game_render() {
 				break;
 			}
 			case BLOCK_SNAKE_BODY: {
-				content = L'b';
+				content = L'□';
 				break;
 			}
 			case BLOCK_SNAKE_HEAD: {
-				content = L'h';
+				content = L'△';
 				break;
 			}
 			default:
-				content = L'm';
+				content = L'?';
 				break;
 			};
 			paint_target(i, j, content);
@@ -134,7 +134,7 @@ void generate_snack() {
 void init_snake_snack() {
 
 	game.score = 0;
-	game.interval = 300;//0.3s
+	game.interval = 1000;//0.3s
 	game.snake_direction = DIRECTION_RIGHT;
 	game.snake_head_x = 5;
 	game.snake_head_y = 5;
@@ -165,44 +165,54 @@ void init_snake_snack() {
 
 }
 
-char temp_direction;
 
-void key_proc(WORD key) {
+bool key_proc(WORD key) {
+	bool vaild = false;
 	switch (key)
 	{
 	case 'W': {
-		if (game.snake_direction != DIRECTION_DOWN) {
-			temp_direction = DIRECTION_UP;
+		if (game.snake_direction != DIRECTION_DOWN && game.snake_direction != DIRECTION_UP) {
+			game.snake_direction = DIRECTION_UP;
+			vaild = true;
 		}
 		break;
 	}
 	case 'S': {
-		if (game.snake_direction != DIRECTION_UP) {
-			temp_direction = DIRECTION_DOWN;
+		if (game.snake_direction != DIRECTION_UP && game.snake_direction != DIRECTION_DOWN) {
+			game.snake_direction = DIRECTION_DOWN;
+			vaild = true;
 		}
 		break;
 	}
 	case 'A': {
-		if (game.snake_direction != DIRECTION_RIGHT) {
-			temp_direction = DIRECTION_LEFT;
+		if (game.snake_direction != DIRECTION_RIGHT && game.snake_direction != DIRECTION_LEFT) {
+			game.snake_direction = DIRECTION_LEFT;
+			vaild = true;
 		}
 		break;
 	}
 	case 'D': {
-		if (game.snake_direction != DIRECTION_LEFT) {
-			temp_direction = DIRECTION_RIGHT;
+		if (game.snake_direction != DIRECTION_LEFT && game.snake_direction != DIRECTION_RIGHT) {
+			game.snake_direction = DIRECTION_RIGHT;
+			vaild = true;
 		}
 		break;
 	}
 	default:
 		break;
 	}
+
+	return vaild;
 }
 
 void update_snake_direction() {
-	temp_direction = game.snake_direction;
-	proc_console_input(key_proc);
-	game.snake_direction = temp_direction;
+	proc_console_input();
+	while (!key_fifo_empty()) {
+		WORD key = key_fifo_pop();
+		if (key_proc(key)) {
+			break;
+		}
+	}
 }
 
 void run_snack_snake() {
@@ -266,18 +276,21 @@ void run_snack_snake() {
 }
 
 int main() {
-	printf("Hello, world!");
-
-	init_snake_snack();
-
-	run_snack_snake();
-
-	console_clear();
-	drop_console();
-
+	
 	WCHAR msg[32];
-	wsprintfW(msg,L"Score: %d\n", game.score);
-	MessageBoxW(NULL, msg, L"GameOver", 0);
+	int r;
+	do {
+		init_snake_snack();
+
+		run_snack_snake();
+
+		//console_clear();
+		drop_console();
+
+		wsprintfW(msg, L"Score: %d  Continue?\n", game.score);
+
+		r = MessageBoxW(NULL, msg, L"GameOver", MB_YESNO);
+	} while (r == 6);
 
 	return 0;
 }
