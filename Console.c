@@ -31,6 +31,10 @@ void key_fifo_push(WORD key) {
 	if (key_fifo_top == KEY_FILO_LEN) {
 		key_fifo_top = 0;
 	}
+	//fifo满了，丢弃最后一个
+	if (key_fifo_top == key_fifo_back) {
+		key_fifo_pop();
+	}
 }
 
 WORD key_fifo_pop() {

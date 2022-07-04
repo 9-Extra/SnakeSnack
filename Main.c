@@ -6,6 +6,7 @@
 #include "SnakeSnack.h"
 
 char panle[PANLE_HEIGHT][PANLE_WIDTH];
+WCHAR title[32];
 
 void panle_clear(char c) {
 	for (int i = 0; i < PANLE_HEIGHT; i++) {
@@ -46,8 +47,12 @@ struct SnakeSnack
 	size_t snake_fifo_last;
 } game;
 
+void update_title() {
+	wsprintfW(title, L"SnakeSnack score: %d", game.score);
+	SetConsoleTitleW(title);
+}
+
 void game_render() {
-	//printf("Score: %d\n", game.score);
 	for (int i = 0; i < PANLE_HEIGHT; i++) {
 		for (int j = 0; j < PANLE_WIDTH; j++) {
 			WCHAR content;
@@ -159,6 +164,8 @@ void init_snake_snack() {
 	snake_fifo_push(build_pos(4, 5));
 	snake_fifo_push(build_pos(5, 5));
 
+	update_title();
+
 	generate_snack();
 
 	init_console(PANLE_WIDTH, PANLE_HEIGHT);
@@ -259,6 +266,7 @@ void run_snack_snake() {
 		case BLOCK_FOOD: {
 			game.score += 10;
 			generate_snack();//重新生成食物
+			update_title();
 			break;
 		}
 		case BLOCK_SNAKE_BODY:
