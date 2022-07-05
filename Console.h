@@ -3,8 +3,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-typedef void (*KeyProc) (WORD key);
-
 extern CHAR_INFO* console_target;
 
 void key_fifo_clear();
@@ -17,7 +15,7 @@ WORD key_fifo_pop();
 
 void init_console(int width, int height);
 void drop_console();
-void proc_console_input();
+void load_console_input();
 
 void paint_target(int x, int y, WCHAR c);
 void console_clear();

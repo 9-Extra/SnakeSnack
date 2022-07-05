@@ -85,7 +85,7 @@ void drop_console() {
 
 }
 
-void proc_console_input() {
+void load_console_input() {
 	DWORD n_read;
 
 	while (true) {
