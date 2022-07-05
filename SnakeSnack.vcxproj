@@ -143,6 +143,7 @@
   <ItemGroup>
     <ClCompile Include="Console.c" />
     <ClCompile Include="Main.c" />
+    <ClCompile Include="SnakeSnack.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Console.h" />
