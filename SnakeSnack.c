@@ -140,36 +140,35 @@ void drop_snake_snack() {
 void update_snake_direction() {
 	load_console_input();
 
-	bool vaild = false;
 	//从头读出记录的所有输入，当读出一个有效时即认为是本回合操作，剩下的留在缓冲区
-	while (!key_fifo_empty() && !vaild) {
+	while (!key_fifo_empty()) {
 		switch (key_fifo_pop())
 		{
 		case 'W': {
 			if (game.snake_direction != DIRECTION_DOWN && game.snake_direction != DIRECTION_UP) {
 				game.snake_direction = DIRECTION_UP;
-				vaild = true;
+				return;
 			}
 			break;
 		}
 		case 'S': {
 			if (game.snake_direction != DIRECTION_UP && game.snake_direction != DIRECTION_DOWN) {
 				game.snake_direction = DIRECTION_DOWN;
-				vaild = true;
+				return;
 			}
 			break;
 		}
 		case 'A': {
 			if (game.snake_direction != DIRECTION_RIGHT && game.snake_direction != DIRECTION_LEFT) {
 				game.snake_direction = DIRECTION_LEFT;
-				vaild = true;
+				return;
 			}
 			break;
 		}
 		case 'D': {
 			if (game.snake_direction != DIRECTION_LEFT && game.snake_direction != DIRECTION_RIGHT) {
 				game.snake_direction = DIRECTION_RIGHT;
-				vaild = true;
+				return;
 			}
 			break;
 		}

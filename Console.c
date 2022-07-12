@@ -50,7 +50,7 @@ void init_console(int width, int height) {
 	width = width * 2;
 	h_in = GetStdHandle(STD_INPUT_HANDLE);
 	h_out = GetStdHandle(STD_OUTPUT_HANDLE);
-	if (h_in == INVALID_HANDLE_VALUE || h_in == INVALID_HANDLE_VALUE) {
+	if (h_in == INVALID_HANDLE_VALUE || h_out == INVALID_HANDLE_VALUE) {
 		ExitProcess(-1);
 	}
 
